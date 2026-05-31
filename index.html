@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PDFリンク集</title>
+  <meta name="description" content="PDF資料をまとめたリンク集です。">
+  <style>
+    :root {
+      --bg: #f7f3ea;
+      --paper: #fffdf7;
+      --ink: #202124;
+      --muted: #6b6458;
+      --line: #ddd2bd;
+      --accent: #9f1239;
+      --accent-2: #1e3a8a;
+      --tag-bg: #f2eadb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 20% 0%, rgba(159,18,57,.08), transparent 28rem),
+        radial-gradient(circle at 90% 20%, rgba(30,58,138,.08), transparent 28rem),
+        var(--bg);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+      line-height: 1.7;
+    }
+    .wrap {
+      width: min(960px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+    header {
+      padding: 48px 0 24px;
+      border-bottom: 1px solid var(--line);
+    }
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--accent);
+      font-weight: 700;
+      letter-spacing: .08em;
+      font-size: .85rem;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(2rem, 7vw, 4.2rem);
+      line-height: 1.05;
+      letter-spacing: -0.05em;
+    }
+    .lead {
+      max-width: 720px;
+      color: var(--muted);
+      margin: 0;
+    }
+    main {
+      padding: 28px 0 56px;
+    }
+    .tools {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    input {
+      width: min(100%, 420px);
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--paper);
+      color: var(--ink);
+      font-size: 16px;
+    }
+    .count {
+      color: var(--muted);
+      font-size: .92rem;
+    }
+    .link-list {
+      display: grid;
+      gap: 12px;
+    }
+    .link-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: center;
+      padding: 18px;
+      background: rgba(255,253,247,.86);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(32,33,36,.05);
+    }
+    .title {
+      margin: 0 0 4px;
+      font-size: 1.18rem;
+      line-height: 1.4;
+    }
+    .description {
+      color: var(--muted);
+      margin: 0 0 10px;
+      font-size: .95rem;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      color: var(--muted);
+      font-size: .82rem;
+    }
+    .tag {
+      background: var(--tag-bg);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 2px 8px;
+      color: #4b463d;
+    }
+    .open {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 108px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: var(--ink);
+      color: white;
+      text-decoration: none;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .open:hover { background: var(--accent); }
+    .path {
+      margin-top: 8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: var(--accent-2);
+      font-size: .82rem;
+      word-break: break-all;
+    }
+    footer {
+      padding: 24px 0 36px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: .9rem;
+    }
+    code {
+      background: var(--tag-bg);
+      padding: 2px 5px;
+      border-radius: 6px;
+    }
+    @media (max-width: 640px) {
+      .link-item {
+        grid-template-columns: 1fr;
+      }
+      .open {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <p class="eyebrow">PDF ARCHIVE</p>
+      <h1>PDFリンク集</h1>
+      <p class="lead">
+        共有したいPDFをまとめて置くためのシンプルなリンク集です。
+        PDF本体は <code>/pdfs/</code> 配下で管理します。
+      </p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="tools">
+      <input id="search" type="search" placeholder="タイトル・説明・タグで検索">
+      <span class="count" id="count"></span>
+    </div>
+    <section class="link-list" id="list" aria-label="PDFリンク一覧"></section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <p>
+        PDFを追加するときは <code>/pdfs/</code> にPDFを置き、
+        <code>/data/pdfs.json</code> にタイトル・説明・ファイルパスを追記します。
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    const list = document.getElementById('list');
+    const search = document.getElementById('search');
+    const count = document.getElementById('count');
+    let items = [];
+
+    function esc(value) {
+      return String(value ?? '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+
+    function render(keyword = '') {
+      const q = keyword.trim().toLowerCase();
+      const filtered = items.filter(item => {
+        const text = [
+          item.title,
+          item.description,
+          item.category,
+          item.date,
+          ...(item.tags || [])
+        ].join(' ').toLowerCase();
+        return text.includes(q);
+      });
+
+      count.textContent = `${filtered.length}件`;
+      list.innerHTML = filtered.map(item => `
+        <article class="link-item">
+          <div>
+            <h2 class="title">${esc(item.title)}</h2>
+            <p class="description">${esc(item.description)}</p>
+            <div class="meta">
+              <span>${esc(item.date)}</span>
+              <span>・</span>
+              <span>${esc(item.category)}</span>
+              ${(item.tags || []).map(tag => `<span class="tag">${esc(tag)}</span>`).join('')}
+            </div>
+            <div class="path">${esc(item.file)}</div>
+          </div>
+          <a class="open" href="${esc(item.file)}" target="_blank" rel="noopener">PDFを開く</a>
+        </article>
+      `).join('');
+
+      if (!filtered.length) {
+        list.innerHTML = '<p>該当するPDFがありません。</p>';
+      }
+    }
+
+    fetch('data/pdfs.json')
+      .then(response => response.json())
+      .then(data => {
+        items = data;
+        render();
+      })
+      .catch(() => {
+        list.innerHTML = '<p>PDF一覧を読み込めませんでした。</p>';
+      });
+
+    search.addEventListener('input', event => render(event.target.value));
+  </script>
+</body>
+</html>
